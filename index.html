@@ -1,23 +1,141 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ja">
 
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Dumb Stuff - Storm Brain</title>
+        <title>Voice Search</title>
+        <style>
+            :root {
+                font-size: 24px;
+                font-family: Arial, Helvetica, sans-serif
+            }
+
+            body {
+                padding: 20px;
+            }
+
+            .editable {
+                display: flex;
+                min-height: 200px;
+                border-radius: 20px;
+                background: #f5f5f5;
+                padding: 20px;
+                border: 1px solid;
+            }
+
+            fieldset>p {
+                white-space: pre
+            }
+
+            kbd {
+                background-color: #eee;
+                border-radius: 3px;
+                border: 1px solid #b4b4b4;
+                box-shadow: 0 1px 1px rgba(0, 0, 0, 0.2),
+                    0 2px 0 0 rgba(255, 255, 255, 0.7) inset;
+                color: #333;
+                display: inline-block;
+                font-size: 0.85em;
+                font-weight: 700;
+                line-height: 1;
+                padding: 2px 4px;
+                white-space: nowrap;
+            }
+
+            select,
+            option {
+                font-size: inherit
+            }
+        </style>
     </head>
 
-    <body>
-        <ul>
-            <li>
+    <!-- 
+    
+    ⁂　NOTE
+        ・Edge browser just correct detect if all the document is a language, cannot use two language in a document
+        So this input to show the guide
 
-                <nav>
-                    <a href="/sound-search/index.html">Sound Search based on
-                        Read Aloud
-                        of Edge browser</a>
-                </nav>
-            </li>
-        </ul>
+    ⁂　HOW TO USE (Edge Browser Aloud)
+
+        ・Press arrow down ↓ to change language
+        ・Press Enter to reload and　Ctrl+Shift+U to aloud voice
+        ・Press → to focus search box
+        ・Press Double Esc to out of aloud
+    
+    -->
+
+    <body>
+        <div class="editable" id="input-box" autofocus="true"
+            contenteditable="true"></div>
+        <!-- aria-hidden to disable aloud this content of tag -->
+        <select id="lang-list" title="language" aria-hidden="true">
+            <option value="ja">JA</option>
+            <option value="en">EN</option>
+            <option value="vi">VI</option>
+        </select>
+        <script>
+            const searchURL = new URLSearchParams(location.search)
+
+            const lang = window.document.getElementById('lang-list')
+            const inputBox = window.document.getElementById('input-box')
+            const htmlTag = window.document.querySelector('html')
+
+            htmlTag.lang = searchURL.get('lang')
+            htmlTag.setAttribute('lang', searchURL.get('lang'))
+            inputBox.textContent = searchURL.get('search')
+            lang.value = searchURL.get('lang')
+
+
+            inputBox.oninput = e => {
+                e.preventDefault()
+                searchURL.set('search', e.target.textContent)
+                window.history.pushState('', '', `?${searchURL.toString()}`);
+            }
+
+            inputBox.oncontextmenu = (e) => {
+                e.preventDefault()
+                const selection = window.getSelection()
+                const range = document.createRange();
+                if (selection.rangeCount > 0) {
+                    selection.removeAllRanges();
+                }
+                range.selectNode(inputBox.firstChild);
+                selection.addRange(range);
+                navigator.clipboard.writeText(inputBox.innerText)
+            }
+
+            window.document.onkeydown = e => {
+                if (e.key === 'ArrowDown') {
+                    const currentLang = lang.value
+                    const list = [ 'ja', 'en', 'vi' ]
+
+                    const idx = list.findIndex(val => val === currentLang)
+                    const nextIdx = (idx + 1) % list.length
+                    lang.value = list[ nextIdx ]
+
+                    htmlTag.lang = lang.value
+                    htmlTag.setAttribute('lang', lang.value)
+
+                    searchURL.set('lang', lang.value)
+                    window.history.pushState('', '', `?${searchURL.toString()}`);
+                }
+
+                if (e.key === 'ArrowRight') {
+                    inputBox.focus()
+                }
+
+                if (e.key === 'Enter') {
+                    // Trick to close the aloud tool and refresh document to use another language
+                    location.reload()
+                }
+
+                if (e.key === 'Delete') {
+                    inputBox.textContent = ''
+                }
+            }
+        </script>
+
     </body>
 
 </html>
