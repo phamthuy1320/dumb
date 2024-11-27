@@ -132,6 +132,10 @@
 
                 if (e.key === 'Delete') {
                     inputBox.textContent = ''
+                    inputBox.focus()
+                    const selection = window.getSelection()
+                    const range = createRange(inputBox)
+                    selection.addRange(range)
                 }
             }
         </script>
